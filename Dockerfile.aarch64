@@ -1,0 +1,24 @@
+# To set multiarch build for Docker hub automated build.
+#FROM golang:alpine AS builder
+
+#WORKDIR /go
+#RUN apk add curl --no-cache
+#RUN curl -L https://github.com/balena-io/qemu/releases/download/v3.0.0%2Bresin/qemu-3.0.0+resin-aarch64.tar.gz | tar zxvf - -C . && mv qemu-3.0.0+resin-aarch64/qemu-aarch64-static .
+
+FROM multiarch/qemu-user-static:aarch64 as qemu
+FROM arm64v8/alpine:edge
+#COPY --from=builder /go/qemu-aarch64-static /usr/bin/
+COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin
+
+MAINTAINER Instrumentisto Team <developer@instrumentisto.com>
+
+
+RUN apk update \
+ && apk upgrade \
+ && apk add --no-cache \
+            rsync \
+            openssh-client \
+            ca-certificates \
+ && update-ca-certificates \
+ && rm -rf /var/cache/apk/* \
+ && rm /usr/bin/qemu-aarch64-static
